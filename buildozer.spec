@@ -12,3 +12,7 @@ android.minapi = 21
 android.ndk = 25b
 android.accept_sdk_license = True
 orientation = portrait
+
+android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+source.include_exts = py,png,jpg,kv,atlas,db
+source.include_patterns = BaseDeDatos/**,ModelosIA/**,Respaldos/**
