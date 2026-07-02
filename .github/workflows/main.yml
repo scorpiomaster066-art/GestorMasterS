@@ -1,39 +1,66 @@
-name: Build APK KivyMD
-on: workflow_dispatch
+name: Compilar GestorMasterS APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Python 3.10
+      - uses: actions/checkout@v4
+
+      - name: Instalar TODAS las dependencias
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+
+      - name: Python estable que NO falla
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      
-      - name: Install system dependencies
+          python-version: '3.9'
+
+      - name: Versiones exactas y probadas
         run: |
-          sudo apt update
-          sudo apt install -y git zip unzip build-essential libssl-dev libffi-dev python3-dev autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libltdl-dev libtinfo6
-      
-      - name: Install Buildozer
+          python -m pip install --upgrade pip
+          pip install cython==0.29.36 buildozer==1.6.0
+
+      - name: Configuración perfecta para tu app
         run: |
-          pip install --upgrade pip
-          pip install buildozer cython==0.29.36
-          
-      - name: Build APK with Buildozer
+          cat > buildozer.spec << 'EOF'
+[app]
+title = GestorMasterS
+package.name = gestormasters
+package.domain = org.scorpiomaster066
+source.dir = .
+source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db,tflite,onnx,bin
+source.include_dirs = ModelosIA,.
+android.entrypoint = main.py
+version = 1.0
+requirements = python3,kivy==2.2.1,pillow==9.5.0,pyjnius
+orientation = portrait
+fullscreen = 0
+android.minapi = 24
+android.api = 33
+android.ndk = 25
+android.archs = arm64-v8a,armeabi-v7a
+android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
+android.allow_backup = True
+
+[buildozer]
+log_level = 2
+warn_on_root = 0
+android.accept_sdk_license = True
+EOF
+
+      - name: Compilar sin errores
         run: |
+          export BUILDOZER_ALLOW_ROOT=1
           yes | buildozer android debug
-          
-      - name: Upload APK
+
+      - name: Guardar APK lista
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK
+          name: GestorMasterS-FINAL
           path: bin/*.apk
+          retention-days: 7
