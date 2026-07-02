@@ -1,3 +1,4 @@
+
 name: Compilar GestorMasterS APK
 on:
   push:
@@ -6,7 +7,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install cython==0.29.36 buildozer==1.6.0
 
-      - name: Crear buildozer.spec sin errores
+      - name: Crear buildozer.spec completo
         run: |
           echo "[app]" > buildozer.spec
           echo "title = GestorMasterS" >> buildozer.spec
@@ -36,7 +41,7 @@ jobs:
           echo "source.include_dirs = ModelosIA,." >> buildozer.spec
           echo "android.entrypoint = main.py" >> buildozer.spec
           echo "version = 1.0" >> buildozer.spec
-          echo "requirements = python3,kivy==2.2.1,pillow==9.5.0,pyjnius" >> buildozer.spec
+          echo "requirements = python3,kivy==2.2.1,kivymd==1.2.0,pillow==9.5.0,pyjnius,android" >> buildozer.spec
           echo "orientation = portrait" >> buildozer.spec
           echo "fullscreen = 0" >> buildozer.spec
           echo "android.minapi = 24" >> buildozer.spec
@@ -51,7 +56,7 @@ jobs:
           echo "warn_on_root = 0" >> buildozer.spec
           echo "android.accept_sdk_license = True" >> buildozer.spec
 
-      - name: Compilar APK
+      - name: Compilar APK final
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           yes | buildozer android debug
