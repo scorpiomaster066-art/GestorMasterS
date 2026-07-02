@@ -11,58 +11,62 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar paquetes base
+      - name: Configurar Java 17 (Obligatorio para API 33)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar paquetes base del sistema
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev cmake ncurses-dev libncurses5-dev libncursesw5-dev
+          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev cmake ncurses-dev libncurses5-dev libncursesw5-dev
 
-      - name: Usar Python EXACTO 3.9
+      - name: Usar Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
-          cache: 'pip'
+          python-version: '3.10'
 
-      - name: Fijar versiones compatibles
+      - name: Instalar dependencias de Python modernas
         run: |
-          python -m pip install --upgrade pip setuptools==65.5.1 wheel==0.38.4
-          pip install cython==0.29.37 buildozer==1.6.0
+          python -m pip install --upgrade pip setuptools wheel
+          pip install cython==0.29.37 buildozer==1.5.0 sh
 
       - name: Crear buildozer.spec CORREGIDO
         run: |
-          echo "[app]" > buildozer.spec
-          echo "title = GestorMasterS" >> buildozer.spec
-          echo "package.name = gestormasters" >> buildozer.spec
-          echo "package.domain = org.scorpiomaster066" >> buildozer.spec
-          echo "source.dir = ." >> buildozer.spec
-          echo "source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db,tflite,onnx,bin" >> buildozer.spec
-          echo "source.include_dirs = ModelosIA,." >> buildozer.spec
-          echo "android.entrypoint = main.py" >> buildozer.spec
-          echo "version = 1.0" >> buildozer.spec
-          echo "requirements = python3==3.9.*,kivy==2.2.1,kivymd==1.2.0,pillow==9.5.0,pyjnius==1.4.2,android" >> buildozer.spec
-          echo "orientation = portrait" >> buildozer.spec
-          echo "fullscreen = 0" >> buildozer.spec
-          echo "android.minapi = 24" >> buildozer.spec
-          echo "android.api = 33" >> buildozer.spec
-          echo "android.ndk = 25b" >> buildozer.spec
-          echo "android.ndk_api = 33" >> buildozer.spec
-          echo "android.archs = arm64-v8a,armeabi-v7a" >> buildozer.spec
-          echo "android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE" >> buildozer.spec
-          echo "android.allow_backup = True" >> buildozer.spec
-          echo "" >> buildozer.spec
-          echo "[buildozer]" >> buildozer.spec
-          echo "log_level = 2" >> buildozer.spec
-          echo "warn_on_root = 0" >> buildozer.spec
-          echo "android.accept_sdk_license = True" >> buildozer.spec
-          echo "android.buildtools = 33.0.2" >> buildozer.spec
-          echo "python_version = 3.9" >> buildozer.spec
-          echo "hostpython_force_version = 3.9" >> buildozer.spec
+          cat << 'EOF' > buildozer.spec
+          [app]
+          title = GestorMasterS
+          package.name = gestormasters
+          package.domain = org.scorpiomaster066
+          source.dir = .
+          source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db,tflite,onnx,bin
+          source.include_dirs = ModelosIA,.
+          android.entrypoint = main.py
+          version = 1.0
+          requirements = python3==3.10.*,kivy==2.3.0,kivymd==1.2.0,pillow,pyjnius==1.6.0,android
+          orientation = portrait
+          fullscreen = 0
+          android.minapi = 24
+          android.api = 33
+          android.ndk = 25b
+          android.ndk_api = 33
+          android.archs = arm64-v8a, armeabi-v7a
+          android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+          android.allow_backup = True
 
-      - name: Compilar sin conflictos
+          [buildozer]
+          log_level = 2
+          warn_on_root = 0
+          android.accept_sdk_license = True
+          android.buildtools = 33.0.2
+          EOF
+
+      - name: Compilar APK (64 y 32 bits incorporados)
         run: |
           export BUILDOZER_ALLOW_ROOT=1
-          export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
           export PYTHONUNBUFFERED=1
-          yes | buildozer android debug --no-clean
+          yes | buildozer android debug
 
       - name: Guardar APK listo
         uses: actions/upload-artifact@v4
@@ -70,6 +74,3 @@ jobs:
           name: GestorMasterS-FINAL
           path: bin/*.apk
           retention-days: 14
-
-
-          
