@@ -24,15 +24,15 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Instalar versiones exactas
+      - name: Instalar herramientas
         run: |
           python -m pip install --upgrade pip
           pip install setuptools==65.5.1 wheel==0.38.4
           pip install cython==0.29.36 buildozer==1.6.0
 
-      - name: Generar buildozer.spec
+      - name: Crear configuración
         run: |
-          cat > buildozer.spec << 'END_SPEC'
+          cat > buildozer.spec << 'FIN'
 [app]
 title = GestorMasterS
 package.name = gestormasters
@@ -56,13 +56,13 @@ android.allow_backup = True
 log_level = 2
 warn_on_root = 0
 android.accept_sdk_license = True
-END_SPEC
+FIN
 
-      - name: Compilar APK
+      - name: Compilar
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-          printf 'y\ny\ny\n' | buildozer android debug
+          echo -e "y\ny\ny\n" | buildozer android debug
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
