@@ -22,10 +22,10 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev cmake ncurses-dev libncurses5-dev libncursesw5-dev
 
-      - name: Usar Python 3.10
+      - name: Usar Python 3.10 Exacto
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.10.14'
 
       - name: Instalar dependencias de Python modernas
         run: |
@@ -44,7 +44,7 @@ jobs:
           source.include_dirs = ModelosIA,.
           android.entrypoint = main.py
           version = 1.0
-          requirements = python3==3.10.*,kivy==2.3.0,kivymd==1.2.0,pillow,pyjnius==1.6.0,android
+          requirements = python3==3.10.14,kivy==2.3.0,kivymd==1.2.0,pillow,pyjnius==1.6.0,android
           orientation = portrait
           fullscreen = 0
           android.minapi = 24
