@@ -70,3 +70,5 @@ FIN
           name: GestorMasterS-FINAL
           path: bin/*.apk
           retention-days: 7
+
+          
