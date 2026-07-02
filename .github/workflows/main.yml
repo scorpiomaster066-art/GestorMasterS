@@ -6,30 +6,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar paquetes
+      - name: Instalar paquetes base
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev cmake
+          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev cmake ncurses-dev libncurses5-dev libncursesw5-dev
 
-      - name: Instalar Python
+      - name: Usar Python EXACTO 3.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
+          cache: 'pip'
 
-      - name: Instalar herramientas
+      - name: Fijar versiones compatibles
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools==65.5.1
-          pip install wheel==0.38.4
-          pip install cython==0.29.36
-          pip install buildozer==1.6.0
+          python -m pip install --upgrade pip setuptools==65.5.1 wheel==0.38.4
+          pip install cython==0.29.37 buildozer==1.6.0
 
-      - name: Crear configuracion
+      - name: Crear buildozer.spec CORREGIDO
         run: |
           echo "[app]" > buildozer.spec
           echo "title = GestorMasterS" >> buildozer.spec
@@ -40,32 +38,38 @@ jobs:
           echo "source.include_dirs = ModelosIA,." >> buildozer.spec
           echo "android.entrypoint = main.py" >> buildozer.spec
           echo "version = 1.0" >> buildozer.spec
-          echo "requirements = python3,kivy==2.2.1,kivymd==1.2.0,pillow==9.5.0,pyjnius,android" >> buildozer.spec
+          echo "requirements = python3==3.9.*,kivy==2.2.1,kivymd==1.2.0,pillow==9.5.0,pyjnius==1.4.2,android" >> buildozer.spec
           echo "orientation = portrait" >> buildozer.spec
           echo "fullscreen = 0" >> buildozer.spec
           echo "android.minapi = 24" >> buildozer.spec
           echo "android.api = 33" >> buildozer.spec
           echo "android.ndk = 25b" >> buildozer.spec
+          echo "android.ndk_api = 33" >> buildozer.spec
           echo "android.archs = arm64-v8a,armeabi-v7a" >> buildozer.spec
           echo "android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE" >> buildozer.spec
           echo "android.allow_backup = True" >> buildozer.spec
+          echo "" >> buildozer.spec
           echo "[buildozer]" >> buildozer.spec
           echo "log_level = 2" >> buildozer.spec
           echo "warn_on_root = 0" >> buildozer.spec
           echo "android.accept_sdk_license = True" >> buildozer.spec
+          echo "android.buildtools = 33.0.2" >> buildozer.spec
+          echo "python_version = 3.9" >> buildozer.spec
+          echo "hostpython_force_version = 3.9" >> buildozer.spec
 
-      - name: Compilar APK
+      - name: Compilar sin conflictos
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-          yes | buildozer android debug
+          export PYTHONUNBUFFERED=1
+          yes | buildozer android debug --no-clean
 
-      - name: Guardar APK
+      - name: Guardar APK listo
         uses: actions/upload-artifact@v4
         with:
           name: GestorMasterS-FINAL
           path: bin/*.apk
-          retention-days: 7
+          retention-days: 14
 
 
           
