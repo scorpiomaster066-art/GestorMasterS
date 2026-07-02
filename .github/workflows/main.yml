@@ -10,50 +10,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar TODAS las dependencias
+      - name: Instalar paquetes base
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libffi-dev libssl-dev
 
-      - name: Python estable que NO falla
+      - name: Python estable
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      - name: Versiones exactas y probadas
+      - name: Instalar herramientas
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install cython==0.29.36 buildozer==1.6.0
 
-      - name: Configuración perfecta para tu app
+      - name: Crear buildozer.spec sin errores
         run: |
-          cat > buildozer.spec << 'EOF'
-[app]
-title = GestorMasterS
-package.name = gestormasters
-package.domain = org.scorpiomaster066
-source.dir = .
-source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db,tflite,onnx,bin
-source.include_dirs = ModelosIA,.
-android.entrypoint = main.py
-version = 1.0
-requirements = python3,kivy==2.2.1,pillow==9.5.0,pyjnius
-orientation = portrait
-fullscreen = 0
-android.minapi = 24
-android.api = 33
-android.ndk = 25
-android.archs = arm64-v8a,armeabi-v7a
-android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-android.allow_backup = True
+          echo "[app]" > buildozer.spec
+          echo "title = GestorMasterS" >> buildozer.spec
+          echo "package.name = gestormasters" >> buildozer.spec
+          echo "package.domain = org.scorpiomaster066" >> buildozer.spec
+          echo "source.dir = ." >> buildozer.spec
+          echo "source.include_exts = py,png,jpg,jpeg,kv,atlas,json,db,tflite,onnx,bin" >> buildozer.spec
+          echo "source.include_dirs = ModelosIA,." >> buildozer.spec
+          echo "android.entrypoint = main.py" >> buildozer.spec
+          echo "version = 1.0" >> buildozer.spec
+          echo "requirements = python3,kivy==2.2.1,pillow==9.5.0,pyjnius" >> buildozer.spec
+          echo "orientation = portrait" >> buildozer.spec
+          echo "fullscreen = 0" >> buildozer.spec
+          echo "android.minapi = 24" >> buildozer.spec
+          echo "android.api = 33" >> buildozer.spec
+          echo "android.ndk = 25" >> buildozer.spec
+          echo "android.archs = arm64-v8a,armeabi-v7a" >> buildozer.spec
+          echo "android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE" >> buildozer.spec
+          echo "android.allow_backup = True" >> buildozer.spec
+          echo "" >> buildozer.spec
+          echo "[buildozer]" >> buildozer.spec
+          echo "log_level = 2" >> buildozer.spec
+          echo "warn_on_root = 0" >> buildozer.spec
+          echo "android.accept_sdk_license = True" >> buildozer.spec
 
-[buildozer]
-log_level = 2
-warn_on_root = 0
-android.accept_sdk_license = True
-EOF
-
-      - name: Compilar sin errores
+      - name: Compilar APK
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           yes | buildozer android debug
